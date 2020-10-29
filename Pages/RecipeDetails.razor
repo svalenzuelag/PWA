@@ -1,0 +1,38 @@
+﻿@page "/recipes/{RecipeId}"
+@inject RecipeRepository Repository
+
+@if (recipe == null)
+{
+    <p>Retrieving...</p>
+}
+else
+{
+    <h1>@recipe.Name</h1>
+    <p>
+        Serves: <strong>@recipe.Servings</strong>
+    </p>
+
+    <h2>Ingredients</h2>
+    <ul>
+        @foreach (var ingredient in recipe.Ingredients)
+        {
+            <li>@ingredient</li>
+        }
+    </ul>
+
+    <h2>Method</h2>
+    <p style="white-space: pre-line;">
+        @recipe.Instructions
+    </p>
+}
+
+@code {
+    [Parameter] string RecipeId { get; set; }
+
+    Recipe recipe;
+
+    protected override async Task OnInitAsync()
+    {
+        recipe = await Repository.GetRecipeByIdAsync(RecipeId);
+    }
+}

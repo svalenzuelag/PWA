@@ -1,0 +1,54 @@
+﻿@page "/recipes"
+@inject RecipeRepository Repository
+
+@if (!totalRecipeCount.HasValue)
+{
+    <p>Downloading database...</p>
+}
+else
+{
+    <h1>Search @totalRecipeCount recipes</h1>
+    <p>
+        <input type="search" value="@searchTerm" @oninput="@UpdateSearchTerm" placeholder="Tag / keyword" />
+    </p>
+
+    @if (matchingRecipes != null && !string.IsNullOrEmpty(searchTerm))
+    {
+        <p>Found @matchingRecipes.Length matches:</p>
+
+        <ul>
+            @foreach (var recipe in matchingRecipes)
+            {
+                <li>
+                    <a href="recipes/@recipe.Id">@recipe.Name</a>
+                </li>
+            }
+        </ul>
+    }
+}
+
+@code {
+    static string searchTerm;
+    int? totalRecipeCount;
+    Recipe[] matchingRecipes;
+
+    protected override async Task OnInitAsync()
+    {
+        var allRecipes = await Repository.GetAllRecipesAsync();
+        totalRecipeCount = allRecipes.Count;
+        await PerformSearch();
+    }
+
+    async Task PerformSearch()
+    {
+        matchingRecipes = string.IsNullOrEmpty(searchTerm)
+            ? Array.Empty<Recipe>()
+            : await Repository.FindByTag(searchTerm);
+    }
+
+    Task UpdateSearchTerm(UIChangeEventArgs eventArgs)
+    {
+        searchTerm = (string)eventArgs.Value;
+        return PerformSearch();
+    }
+}
